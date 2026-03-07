@@ -1,6 +1,6 @@
 # mclock
 
-Fast monotonic millisecond clock for Go.
+Fast monotonic clock for Go with millisecond and microsecond resolution.
 
 On arm64, reads the `CNTVCT_EL0` counter register directly via a single `MRS` instruction (~1.8 ns), bypassing Go's runtime and libSystem. Falls back to `time.Since` on other architectures.
 
@@ -11,18 +11,21 @@ import "github.com/bds421/rho-mclock"
 
 epoch := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
 clk := mclock.New(epoch)
-ms := clk.Now() // milliseconds since epoch
+ms := clk.Now()      // milliseconds since epoch
+us := clk.NowMicro() // microseconds since epoch
 ```
 
 ## How It Works
 
 **arm64 fast path:**
-1. `New()`: reads `CNTVCT_EL0`, stores as base ticks. Calls `time.Since(epoch).Milliseconds()` once for base milliseconds.
+1. `New()`: reads `CNTVCT_EL0`, stores as base ticks. Samples `time.Since(epoch)` once for base milliseconds and microseconds.
 2. `Now()`: reads `CNTVCT_EL0`, subtracts base ticks, divides by ticks-per-ms, adds base milliseconds.
-3. `ticksPerMs` computed once at init from `CNTFRQ_EL0` (24 MHz on Apple Silicon = 24,000 ticks/ms).
+3. `NowMicro()`: same as `Now()` but divides by ticks-per-us and adds base microseconds.
+4. `ticksPerMs` and `ticksPerUs` computed once at init from `CNTFRQ_EL0` (24 MHz on Apple Silicon = 24,000 ticks/ms, 24 ticks/us).
 
 **Fallback path (!arm64):**
-- Uses `time.Since(epoch).Milliseconds()` directly.
+- `Now()` uses `time.Since(epoch).Milliseconds()` directly.
+- `NowMicro()` uses `time.Since(epoch).Microseconds()` directly.
 
 ## Performance
 

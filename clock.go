@@ -9,5 +9,6 @@ import "time"
 type Clock struct {
 	baseTicks uint64    // arm64: CNTVCT_EL0 at creation
 	baseMs    int64     // arm64: time.Since(epoch) at creation
+	baseUs    int64     // arm64: time.Since(epoch) in microseconds at creation
 	epoch     time.Time // fallback: stored epoch with monotonic reading
 }

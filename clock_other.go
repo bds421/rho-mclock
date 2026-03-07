@@ -16,3 +16,8 @@ func New(epoch time.Time) Clock {
 func (c Clock) Now() int64 {
 	return time.Since(c.epoch).Milliseconds()
 }
+
+// NowMicro returns microseconds elapsed since the epoch.
+func (c Clock) NowMicro() int64 {
+	return time.Since(c.epoch).Microseconds()
+}

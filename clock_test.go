@@ -80,6 +80,42 @@ func TestNowAgreesWithTimeSince(t *testing.T) {
 	}
 }
 
+func TestNowMicroPositive(t *testing.T) {
+	epoch := time.Now().Add(-time.Second)
+	clk := New(epoch)
+	us := clk.NowMicro()
+	if us <= 0 {
+		t.Fatalf("expected positive us for past epoch, got %d", us)
+	}
+}
+
+func TestNowMicroMonotonic(t *testing.T) {
+	clk := New(time.Now().Add(-time.Hour))
+	prev := clk.NowMicro()
+	for i := range 10_000 {
+		cur := clk.NowMicro()
+		if cur < prev {
+			t.Fatalf("non-monotonic at iteration %d: %d < %d", i, cur, prev)
+		}
+		prev = cur
+	}
+}
+
+func TestNowMicroAccuracy(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping accuracy test in short mode")
+	}
+	epoch := time.Now().Add(-time.Hour)
+	clk := New(epoch)
+	before := clk.NowMicro()
+	time.Sleep(10 * time.Millisecond)
+	after := clk.NowMicro()
+	delta := after - before
+	if delta < 8000 || delta > 12000 {
+		t.Fatalf("expected ~10000us delta, got %dus", delta)
+	}
+}
+
 var sink int64
 
 func BenchmarkNow(b *testing.B) {
@@ -87,6 +123,14 @@ func BenchmarkNow(b *testing.B) {
 	b.ReportAllocs()
 	for b.Loop() {
 		sink = clk.Now()
+	}
+}
+
+func BenchmarkNowMicro(b *testing.B) {
+	clk := New(time.Now().Add(-time.Hour))
+	b.ReportAllocs()
+	for b.Loop() {
+		sink = clk.NowMicro()
 	}
 }
 
