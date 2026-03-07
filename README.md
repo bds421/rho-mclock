@@ -26,15 +26,14 @@ ms := clk.Now() // milliseconds since epoch
 
 ## Performance
 
-Results on a MacBook Pro M4 Max (Go 1.26, darwin/arm64):
+MacBook Pro M4 Max, Go 1.26, darwin/arm64:
 
-```
-BenchmarkNow-16        685477630         1.761 ns/op        0 B/op    0 allocs/op
-BenchmarkTimeSince-16  100000000        11.94 ns/op         0 B/op    0 allocs/op
-```
+| Benchmark | ns/op | vs stdlib |
+|---|---|---|
+| `mclock.Now()` | 1.76 | **6.7x faster** |
+| `time.Since().Milliseconds()` | 11.94 | baseline |
 
-**6.7x faster** than `time.Since().Milliseconds()` on macOS arm64. On other
-architectures both benchmarks produce identical results (fallback path).
+Zero allocations for both. On non-arm64 architectures both paths are equivalent.
 
 ## Requirements
 
