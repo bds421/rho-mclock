@@ -1,4 +1,4 @@
-//go:build !arm64
+//go:build !(darwin && arm64)
 
 package mclock
 

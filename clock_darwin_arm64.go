@@ -1,31 +1,25 @@
-//go:build arm64
+//go:build darwin && arm64
 
 package mclock
 
 import "time"
 
 var (
-	ticksPerMs uint64
-	ticksPerUs uint64
+	freq        uint64
+	useFallback bool
 )
 
 func init() {
-	freq := counterFreq()
-	if freq == 0 {
-		panic("mclock: CNTFRQ_EL0 returned 0")
+	f := counterFreq()
+	if f == 0 {
+		useFallback = true
+		return
 	}
-	ticksPerMs = freq / 1000
-	if ticksPerMs == 0 {
-		panic("mclock: counter frequency too low for millisecond precision")
-	}
-	ticksPerUs = freq / 1_000_000
-	if ticksPerUs == 0 {
-		panic("mclock: counter frequency too low for microsecond precision")
-	}
+	freq = f
 }
 
-func counterValue() uint64 // implemented in clock_arm64.s
-func counterFreq() uint64  // implemented in clock_arm64.s
+func counterValue() uint64 // implemented in clock_darwin_arm64.s
+func counterFreq() uint64  // implemented in clock_darwin_arm64.s
 
 // New creates a Clock anchored to the given epoch.
 //
@@ -35,7 +29,16 @@ func counterFreq() uint64  // implemented in clock_arm64.s
 // microseconds under heavy GC pressure). This is well within the
 // tolerance for millisecond timestamps and acceptable for microsecond
 // timestamps in practice.
+//
+// If the hardware counter is unavailable, New falls back to [time.Since]
+// using a re-anchored epoch with a monotonic reading.
 func New(epoch time.Time) Clock {
+	if useFallback {
+		now := time.Now()
+		return Clock{
+			epoch: now.Add(epoch.Sub(now)),
+		}
+	}
 	elapsed := time.Since(epoch)
 	return Clock{
 		baseTicks: counterValue(),
@@ -46,14 +49,18 @@ func New(epoch time.Time) Clock {
 
 // Now returns milliseconds elapsed since the epoch.
 func (c Clock) Now() int64 {
-	// Unsigned subtraction is safe: CNTVCT_EL0 is a monotonically
-	// increasing 64-bit counter that does not wrap during operation.
+	if !c.epoch.IsZero() {
+		return time.Since(c.epoch).Milliseconds()
+	}
 	delta := counterValue() - c.baseTicks
-	return c.baseMs + int64(delta/ticksPerMs)
+	return c.baseMs + ticksToMs(delta, freq)
 }
 
 // NowMicro returns microseconds elapsed since the epoch.
 func (c Clock) NowMicro() int64 {
+	if !c.epoch.IsZero() {
+		return time.Since(c.epoch).Microseconds()
+	}
 	delta := counterValue() - c.baseTicks
-	return c.baseUs + int64(delta/ticksPerUs)
+	return c.baseUs + ticksToUs(delta, freq)
 }
