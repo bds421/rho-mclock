@@ -80,16 +80,21 @@ func TestNowAgreesWithTimeSince(t *testing.T) {
 	}
 }
 
+var sink int64
+
 func BenchmarkNow(b *testing.B) {
 	clk := New(time.Now().Add(-time.Hour))
+	b.ReportAllocs()
 	for b.Loop() {
-		clk.Now()
+		sink = clk.Now()
 	}
 }
 
 func BenchmarkTimeSince(b *testing.B) {
-	epoch := time.Now().Add(-time.Hour)
+	now := time.Now()
+	epoch := now.Add(time.Now().Add(-time.Hour).Sub(now))
+	b.ReportAllocs()
 	for b.Loop() {
-		time.Since(epoch).Milliseconds()
+		sink = time.Since(epoch).Milliseconds()
 	}
 }
