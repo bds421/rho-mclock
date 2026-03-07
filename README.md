@@ -2,7 +2,7 @@
 
 Fast monotonic millisecond clock for Go.
 
-On arm64, reads the `CNTVCT_EL0` counter register directly via a single `MRS` instruction (~5-8 ns), bypassing Go's runtime and libSystem. Falls back to `time.Since` on other architectures.
+On arm64, reads the `CNTVCT_EL0` counter register directly via a single `MRS` instruction (~1.8 ns), bypassing Go's runtime and libSystem. Falls back to `time.Since` on other architectures.
 
 ## Usage
 
@@ -26,11 +26,15 @@ ms := clk.Now() // milliseconds since epoch
 
 ## Performance
 
-| Platform | `time.Since` | `mclock.Now` |
-|---|---|---|
-| macOS arm64 (M4 Max) | ~280 ns | ~5-8 ns |
-| Linux arm64 | ~15-20 ns | ~5-8 ns |
-| Linux/macOS amd64 | ~15-50 ns | same (fallback) |
+Results on a MacBook Pro M4 Max (Go 1.26, darwin/arm64):
+
+```
+BenchmarkNow-16        685477630         1.761 ns/op        0 B/op    0 allocs/op
+BenchmarkTimeSince-16  100000000        11.94 ns/op         0 B/op    0 allocs/op
+```
+
+**6.7x faster** than `time.Since().Milliseconds()` on macOS arm64. On other
+architectures both benchmarks produce identical results (fallback path).
 
 ## Requirements
 
@@ -39,4 +43,4 @@ ms := clk.Now() // milliseconds since epoch
 
 ## License
 
-See [LICENSE](../rho-snowflake-2026/LICENSE).
+Apache-2.0 -- see [LICENSE](LICENSE).
