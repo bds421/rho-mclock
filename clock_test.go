@@ -68,13 +68,15 @@ func TestNowAgreesWithTimeSince(t *testing.T) {
 	epoch := time.Now().Add(-time.Hour)
 	clk := New(epoch)
 
-	// Compare over a short window — results should agree within +/- 1ms.
+	// Compare over a short window — results should agree within +/- 2ms.
+	// On the fallback path (amd64) both reads use time.Since but are not
+	// atomic, so scheduler jitter can introduce up to ~2ms skew.
 	for range 100 {
 		mclockMs := clk.Now()
 		stdMs := time.Since(epoch).Milliseconds()
 		diff := mclockMs - stdMs
-		if diff < -1 || diff > 1 {
-			t.Fatalf("mclock=%d, time.Since=%d, diff=%d (want within +/-1)", mclockMs, stdMs, diff)
+		if diff < -2 || diff > 2 {
+			t.Fatalf("mclock=%d, time.Since=%d, diff=%d (want within +/-2)", mclockMs, stdMs, diff)
 		}
 		time.Sleep(10 * time.Millisecond)
 	}
