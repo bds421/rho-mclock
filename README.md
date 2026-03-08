@@ -4,7 +4,13 @@ Fast monotonic clock for Go with millisecond and microsecond resolution.
 
 On darwin/arm64 (Apple Silicon), reads the `CNTVCT_EL0` counter register directly via a single `MRS` instruction (~1.8 ns), bypassing Go's runtime and libSystem. Falls back to `time.Since` on all other platforms.
 
-## Usage
+## Install
+
+```sh
+go get github.com/bds421/rho-mclock
+```
+
+## Quick Start
 
 ```go
 import "github.com/bds421/rho-mclock"
@@ -45,6 +51,18 @@ Zero allocations for both. On non-darwin/arm64 platforms both paths are equivale
 - Go 1.26+
 - Fast path requires darwin/arm64 (Apple Silicon). Linux arm64 and all other platforms use the fallback path.
 - The fast path reads `CNTVCT_EL0` directly; VMs or environments that trap this register will get the fallback path automatically.
+
+## Testing
+
+```sh
+make all          # vet + race tests + benchmarks
+make test-race    # tests with race detector
+make bench        # benchmarks only
+```
+
+## Contributing
+
+See [CONTRIBUTORS](CONTRIBUTORS) for the list of contributors.
 
 ## License
 
