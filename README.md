@@ -37,7 +37,7 @@ us := clk.NowMicro() // microseconds since epoch
 
 ## Performance
 
-Results are environment-specific. MacBook Pro M4 Max, Go 1.26, darwin/arm64:
+Results are environment-specific. MacBook Pro M4 Max, Go 1.26.1, darwin/arm64:
 
 | Benchmark | ns/op | vs stdlib |
 |---|---|---|
@@ -48,7 +48,7 @@ Zero allocations for both. On non-darwin/arm64 platforms both paths are equivale
 
 ## Requirements
 
-- Go 1.26+
+- Go 1.26.1+
 - Fast path requires darwin/arm64 (Apple Silicon). Linux arm64 and all other platforms use the fallback path.
 - The fast path reads `CNTVCT_EL0` directly; VMs or environments that trap this register will get the fallback path automatically.
 

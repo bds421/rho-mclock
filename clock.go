@@ -19,11 +19,11 @@ type Clock struct {
 // integer-truncated divisors (freq/1000) introduce on frequencies
 // that are not exact multiples of 1000.
 func ticksToMs(delta, freq uint64) int64 {
-	return int64(delta/freq*1000 + delta%freq*1000/freq)
+	return int64(delta/freq*1000 + delta%freq*1000/freq) // #nosec G115 — result is elapsed ms, overflow requires ~292M years
 }
 
 // ticksToUs converts a tick delta to microseconds using exact
 // quotient+remainder arithmetic.
 func ticksToUs(delta, freq uint64) int64 {
-	return int64(delta/freq*1_000_000 + delta%freq*1_000_000/freq)
+	return int64(delta/freq*1_000_000 + delta%freq*1_000_000/freq) // #nosec G115 — result is elapsed µs, overflow requires ~292K years
 }

@@ -5,7 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.1] - 2026-03-14
+
+### Changed
+- Bump Go version to 1.26.1
+- Add `#nosec G115` annotations on tick conversion functions (elapsed time overflow is physically impossible)
 
 ### Fixed
 - Widen `TestNowAgreesWithTimeSince` tolerance from ±1ms to ±2ms
